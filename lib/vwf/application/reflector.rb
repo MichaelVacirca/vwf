@@ -100,7 +100,8 @@ class VWF::Application::Reflector < Rack::SocketIO::Application
         send "time" => session[:transport].time,
           "action" => "createNode",
           "parameters" => [
-            "http://vwf.example.com/clients.vwf"
+            "http://vwf.example.com/clients.vwf",
+            "clients"
           ]
 
         send "time" => session[:transport].time,

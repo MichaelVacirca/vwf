@@ -1968,6 +1968,8 @@
         /// 
         /// @see {@link module:vwf/api/kernel.createChild}
 
+var nodeAnnotations = {};
+
         this.createChild = function( nodeID, childName, childComponent, childURI, callback_async /* ( childID ) */ ) {
 
             this.logger.debuggx( "createChild", function() {
@@ -2025,6 +2027,10 @@ if ( useLegacyID ) {  // TODO: fix static ID references and remove
             if ( nodeID === 0 && childName == "application" && ! applicationID ) {
                 applicationID = childID;
             }
+
+if ( nodeID === 0 &&& childName !== undefined ) {
+    nodeAnnotations[childName] = childID;
+}
 
             // Register the node.
 
@@ -3580,8 +3586,17 @@ if ( ! childComponent.source ) {
             // Evaluate the expression, using the application as the root and the provided node as
             // the reference.
 
+var rootID = this.application( initializedOnly );
+
+var match = matchPattern.match( /^([^:]*):\/(.*)/ );
+
+if ( match ) {
+    rootID = nodeAnnotations[match[1]] || rootID;
+    matchPattern = match[2];
+}
+
             var matchIDs = require( "vwf/utility" ).xpath.resolve( matchPattern,
-                this.application( initializedOnly ), nodeID, resolverWithInitializedOnly, this );
+                rootID /* this.application( initializedOnly ) */, nodeID, resolverWithInitializedOnly, this );
 
             // Return the result, either by invoking the callback when provided, or returning the
             // array directly.

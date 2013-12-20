@@ -211,6 +211,69 @@ define( [ "module", "vwf/model", "vwf/utility" ], function( module, model, utili
                 }
             } );
 
+
+
+
+
+
+
+            Object.defineProperty( node.children, "added", { // "this" is node.children in get/set
+                set: function( value ) {
+                    var listeners = this.node.private.listeners["added"] ||
+                        ( this.node.private.listeners["added"] = [] ); // array of { handler: function, context: node, phases: [ "phase", ... ] }
+                    if ( typeof value == "function" || value instanceof Function ) {
+                        listeners.push( { handler: value, context: this.node } ); // for node.children.*event* = function() { ... }, context is the target node
+                    } else if ( value.add ) {
+                        if ( ! value.phases || value.phases instanceof Array ) {
+                            listeners.push( { handler: value.handler, context: value.context, phases: value.phases } );
+                        } else {
+                            listeners.push( { handler: value.handler, context: value.context, phases: [ value.phases ] } );
+                        }
+                    } else if ( value.remove ) {
+                        this.node.private.listeners["added"] = listeners.filter( function( listener ) {
+                            return listener.handler !== value.handler;
+                        } );
+                    } else if ( value.flush ) {
+                        this.node.private.listeners["added"] = listeners.filter( function( listener ) {
+                            return listener.context !== value.context;
+                        } );
+                    }
+                },
+            } );
+
+            Object.defineProperty( node.children, "removed", { // "this" is node.children in get/set
+                set: function( value ) {
+                    var listeners = this.node.private.listeners["removed"] ||
+                        ( this.node.private.listeners["removed"] = [] ); // array of { handler: function, context: node, phases: [ "phase", ... ] }
+                    if ( typeof value == "function" || value instanceof Function ) {
+                        listeners.push( { handler: value, context: this.node } ); // for node.children.*event* = function() { ... }, context is the target node
+                    } else if ( value.add ) {
+                        if ( ! value.phases || value.phases instanceof Array ) {
+                            listeners.push( { handler: value.handler, context: value.context, phases: value.phases } );
+                        } else {
+                            listeners.push( { handler: value.handler, context: value.context, phases: [ value.phases ] } );
+                        }
+                    } else if ( value.remove ) {
+                        this.node.private.listeners["removed"] = listeners.filter( function( listener ) {
+                            return listener.handler !== value.handler;
+                        } );
+                    } else if ( value.flush ) {
+                        this.node.private.listeners["removed"] = listeners.filter( function( listener ) {
+                            return listener.context !== value.context;
+                        } );
+                    }
+                },
+            } );
+
+            node.private.listeners["added"] = [];
+            node.private.listeners["removed"] = [];
+
+
+
+
+
+
+
             // Define the "random" and "seed" functions.
 
             Object.defineProperty( node, "random", { // "this" is node
@@ -374,6 +437,8 @@ node.hasOwnProperty( childName ) ||  // TODO: recalculate as properties, methods
 
             }
 
+nodeID && this.firingEvent( nodeID, "added", [ child ] );
+
             return undefined;
         },
 
@@ -383,6 +448,8 @@ node.hasOwnProperty( childName ) ||  // TODO: recalculate as properties, methods
 
             var child = this.nodes[nodeID];
             var node = child.parent;
+
+node && this.nodes[node.id] && this.firingEvent( node.id, "removed", [ child ] );
 
             if ( node ) {
 
@@ -587,6 +654,11 @@ node.hasOwnProperty( methodName ) ||  // TODO: recalculate as properties, method
 
             var node = this.nodes[nodeID];
             var self = this;
+
+//             defineEvent( node.events, eventName, true, true );
+// node.hasOwnProperty( eventName ) ||  // TODO: recalculate as properties, methods, events and children are created and deleted; properties take precedence over methods over events over children, for example
+//             defineEvent( node, eventName, true, true );
+
 
             Object.defineProperty( node.events, eventName, { // "this" is node.events in get/set
                 get: function() {
