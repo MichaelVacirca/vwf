@@ -2028,7 +2028,7 @@ if ( useLegacyID ) {  // TODO: fix static ID references and remove
                 applicationID = childID;
             }
 
-if ( nodeID === 0 &&& childName !== undefined ) {
+if ( nodeID === 0 && childName !== undefined ) {
     nodeAnnotations[childName] = childID;
 }
 
