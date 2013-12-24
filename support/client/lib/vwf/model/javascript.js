@@ -22,6 +22,9 @@
 
 define( [ "module", "vwf/model", "vwf/utility" ], function( module, model, utility ) {
 
+    var nodeID = "http://vwf.example.com/node.vwf";  // TODO: to kernel properties
+    var nodeWrapPrototype = {};  // TODO: to kernel properties
+
     return model.load( module, {
 
         // This is a placeholder for providing a natural integration between simulation and the
@@ -519,15 +522,23 @@ node && this.nodes[node.id] && this.firingEvent( node.id, "removed", [ child ] )
             var self = this;
 
             Object.defineProperty( node.properties, propertyName, { // "this" is node.properties in get/set
-                get: function() { return self.kernel.getProperty( this.node.id, propertyName ) },
-                set: function( value ) { self.kernel.setProperty( this.node.id, propertyName, value ) },
+                get: function() {
+                    return unwrap.call( self, self.kernel.getProperty( this.node.id, propertyName ) );
+                },
+                set: function( value ) {
+                    self.kernel.setProperty( this.node.id, propertyName, wrap.call( self, value ) );
+                },
                 enumerable: true
             } );
 
 node.hasOwnProperty( propertyName ) ||  // TODO: recalculate as properties, methods, events and children are created and deleted; properties take precedence over methods over events over children, for example
             Object.defineProperty( node, propertyName, { // "this" is node in get/set
-                get: function() { return self.kernel.getProperty( this.id, propertyName ) },
-                set: function( value ) { self.kernel.setProperty( this.id, propertyName, value ) },
+                get: function() {
+                    return unwrap.call( self, self.kernel.getProperty( this.id, propertyName ) );
+                },
+                set: function( value ) {
+                    self.kernel.setProperty( this.id, propertyName, wrap.call( self, value ) );
+                },
                 enumerable: true
             } );
 
@@ -1212,6 +1223,29 @@ future.hasOwnProperty( eventName ) ||  // TODO: calculate so that properties tak
             } ).concat( nodeListeners );
         }
 
+    }
+
+    // -- wrap -------------------------------------------------------------------------------------
+
+    function wrap( propertyValue ) {
+var nodeNode = this.nodes[nodeID];  // TODO: if doesn't exist?
+        if ( nodeNode.isPrototypeOf( propertyValue ) ) {  // TODO: or is nodeNode
+            return Object.create( nodeWrapPrototype, {
+                id: { value: propertyValue.id }  // TODO: same wrapper for same id so that === works
+            } );
+        } else {
+            return propertyValue;
+        }
+    }
+
+    // -- unwrap -----------------------------------------------------------------------------------
+
+    function unwrap( propertyValue ) {
+        if ( nodeWrapPrototype.isPrototypeOf( propertyValue ) ) {
+            return this.nodes[propertyValue.id];
+        } else {
+            return propertyValue;
+        }
     }
 
 } );
