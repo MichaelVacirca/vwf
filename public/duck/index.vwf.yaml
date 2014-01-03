@@ -15,7 +15,21 @@
 extends: http://vwf.example.com/scene.vwf
 properties:
   navmode: none
+  a: 1
+  b: 2
+  c: 3
+  d: abc
+  e: "def"
   rotationSpeed: 10
+    set:
+      function() {}
+      "abc";
+
+      return;
+    get:
+      if (true) {} else{};
+    valuexsasdfasfd: 123
+  cameraReference:
 methods:
   initializeCamera:
 children:
@@ -61,16 +75,21 @@ children:
       intensity: 2
       color: [ 128, 128, 128 ]
       translation: [ 400, 400, 900 ]
-scripts:
-- |
+scripts: |
     this.initialize = function(){
       this.future( 0 ).initializeCamera();
+      console.warn( "init", this.find( "clients:/" )[0].id );
     }
-
     this.initializeCamera = function() {
       this.camera.transform = [ -1,   0,  0, 0, 
                                  0,  -1,  0, 0, 
                                  0,   0,  1, 0, 
                                 16, 600, 90, 1 ];
       this.camera.far *= 4;
+      console.warn( "icam", this.find( "clients:/" )[0].id );
+      this.cameraReference = this.camera;
     }
+properties:
+  navmode: none
+  rotationSpeed: 10
+  cameraReference:

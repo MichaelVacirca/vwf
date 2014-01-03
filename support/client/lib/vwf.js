@@ -3587,12 +3587,13 @@ if ( ! childComponent.source ) {
             // the reference.
 
 var rootID = this.application( initializedOnly );
-
-var match = matchPattern.match( /^([^:]*):\/(.*)/ );
+var match = matchPattern.match( /^([a-z]*):(\/.*)/ );
 
 if ( match ) {
-    rootID = nodeAnnotations[match[1]] || rootID;
+    console.warn( "find 1", rootID, matchPattern );
+    rootID = ! initializedOnly || nodes.existing[nodeID].initialized ? nodeAnnotations[ match[1] ] : undefined;
     matchPattern = match[2];
+    console.warn( "find 2", rootID, matchPattern );
 }
 
             var matchIDs = require( "vwf/utility" ).xpath.resolve( matchPattern,
