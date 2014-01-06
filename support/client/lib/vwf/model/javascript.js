@@ -572,13 +572,14 @@ node.hasOwnProperty( eventName ) ||  // TODO: recalculate as properties, methods
 
         // -- addingEventListener ------------------------------------------------------------------
 
-        addingEventListener: function( nodeID, eventName, eventHandler, eventContext, eventPhases ) {  // TODO: context id
+        addingEventListener: function( nodeID, eventName, eventHandler, eventContextID, eventPhases ) {
 
             var node = this.nodes[nodeID];
+            var eventContext = this.nodes[eventContextID];
 
             var listeners = initializeListeners( node, eventName );
 
-            listeners.push( { handler: eventHandler, context: eventContext, phases: eventPhases } );  // TODO: context id
+            listeners.push( { handler: eventHandler, context: eventContext, phases: eventPhases } );
 
         },
 
@@ -598,14 +599,15 @@ node.hasOwnProperty( eventName ) ||  // TODO: recalculate as properties, methods
 
         // -- flushingEventListeners ---------------------------------------------------------------
 
-        flushingEventListeners: function( nodeID, eventName, eventContext ) {  // TODO: context id
+        flushingEventListeners: function( nodeID, eventName, eventContextID ) {
 
             var node = this.nodes[nodeID];
+            var eventContext = this.nodes[eventContextID];
 
             var listeners = initializeListeners( node, eventName );
 
             node.private.listeners[eventName] = listeners.filter( function( listener ) {
-                return listener.context !== eventContext;  // TODO: context id
+                return listener.context !== eventContext;
             } );
 
         },
@@ -1149,17 +1151,22 @@ future.hasOwnProperty( eventName ) ||  // TODO: calculate so that properties tak
             set: function( value ) {  // `this` is the container
                 var node = this.node || this;  // the node via node.*collection*.node, or just node
                 if ( typeof value == "function" || value instanceof Function ) {
-                    kernelDotAddEventListener.call( self, node.id, eventNamespace, eventName, value, node );  // for container.*event* = function() { ... }, context is the target node
+                    kernelDotAddEventListener.call( self, node.id, eventNamespace, eventName,
+                        value, node.id );  // for container.*event* = function() { ... }, context is the target node
                 } else if ( value.add ) {
                     if ( ! value.phases || value.phases instanceof Array ) {
-                        kernelDotAddEventListener.call( self, node.id, eventNamespace, eventName, value.handler, value.context, value.phases );
+                        kernelDotAddEventListener.call( self, node.id, eventNamespace, eventName,
+                            value.handler, value.context && value.context.id, value.phases );
                     } else {
-                        kernelDotAddEventListener.call( self, node.id, eventNamespace, eventName, value.handler, value.context, [ value.phases ] );
+                        kernelDotAddEventListener.call( self, node.id, eventNamespace, eventName,
+                            value.handler, value.context && value.context.id, [ value.phases ] );
                     }
                 } else if ( value.remove ) {
-                    kernelDotRemoveEventListener.call( self, node.id, eventNamespace, eventName, value.handler );
+                    kernelDotRemoveEventListener.call( self, node.id, eventNamespace, eventName,
+                        value.handler );
                 } else if ( value.flush ) {
-                    kernelDotFlushEventListeners.call( self, node.id, eventNamespace, eventName, value.context );
+                    kernelDotFlushEventListeners.call( self, node.id, eventNamespace, eventName,
+                        value.context && value.context.id );
                 }
             },
 
@@ -1189,20 +1196,20 @@ future.hasOwnProperty( eventName ) ||  // TODO: calculate so that properties tak
 
     // Stand-in for a namespace-aware kernel.addEventListener().
 
-    function kernelDotAddEventListener( nodeID, eventNamespace, eventName, eventHandler, eventContext, eventPhases ) {
-        this.addingEventListener( nodeID, namespacedEventName( eventNamespace, eventName ), eventHandler, eventContext, eventPhases );  // TODO: eventContextID
+    function kernelDotAddEventListener( nodeID, eventNamespace, eventName, eventHandler, eventContextID, eventPhases ) {
+        this.addingEventListener( nodeID, namespacedEventName( eventNamespace, eventName ), eventHandler, eventContextID, eventPhases );
     }
 
     // Stand-in for a namespace-aware kernel.removeEventListener().
 
     function kernelDotRemoveEventListener( nodeID, eventNamespace, eventName, eventHandler ) {
-        this.removingEventListener( nodeID, namespacedEventName( eventNamespace, eventName ), eventHandler );  // TODO: eventContextID
+        this.removingEventListener( nodeID, namespacedEventName( eventNamespace, eventName ), eventHandler );
     }
 
     // Stand-in for a namespace-aware kernel.flushEventListeners().
 
-    function kernelDotFlushEventListeners( nodeID, eventNamespace, eventName, eventContext ) {
-        this.flushingEventListeners( nodeID, namespacedEventName( eventNamespace, eventName ), eventContext );  // TODO: eventContextID
+    function kernelDotFlushEventListeners( nodeID, eventNamespace, eventName, eventContextID ) {
+        this.flushingEventListeners( nodeID, namespacedEventName( eventNamespace, eventName ), eventContextID );
     }
 
     function namespacedEventName( eventNamespace, eventName ) {
