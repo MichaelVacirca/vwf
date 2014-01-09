@@ -3735,11 +3735,11 @@ if ( ! childComponent.source ) {
 
         this.test = function( nodeID, matchPattern, testID, initializedOnly ) {
 
-            // Evaluate the expression, using the application as the root and the provided node as
+            // Evaluate the expression using the application as the root and the provided node as
             // the reference.
 
             var matchIDs = require( "vwf/utility" ).xpath.resolve( matchPattern,
-                this.application( initializedOnly ), nodeID, resolverWithInitializedOnly, this );
+                this.root( nodeID, initializedOnly ), nodeID, resolverWithInitializedOnly, this );
 
             // Search for the test node in the result.
 
